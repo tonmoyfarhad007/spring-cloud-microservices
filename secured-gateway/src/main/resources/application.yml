@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/Test
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+#  cloud:
+#    gateway:
+#      routes:
+#        - id: service-one
+#          uri: lb://SERVICE-ONE
+#          predicates:
+#            - Path=/api/v1/private/service/one/**
+#        - id: service-two
+#          uri: lb://SERVICE-TWO
+#          predicates:
+#            - Path=/api/v1/private/service/two/**
+#        - id: rbac
+#          uri: lb://RBAC
+#          predicates:
+#            - Path=/api/v1/private/service/rbac/**
+  main:
+    web-application-type: reactive
+
+server:
+  port: 8087
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        minimum-number-of-calls: 5
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 3s
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 2s
+
+
+#    instances:
+#      service-one:
+#        register-health-indicator: true
+#        sliding-window-type: COUNT_BASED
+#        sliding-window-size: 10
+#        failure-rate-threshold: 50
+#        wait-duration-in-open-state: 5s
+#        permitted-number-of-calls-in-half-open-state: 3
+#        automatic-transition-from-open-to-half-open-enabled: true
+#        minimum-number-of-calls: 5
